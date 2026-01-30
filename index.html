@@ -2,275 +2,270 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LEGIÓN SCARFACE | CENTRAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LEGIÓN SCARFACE | OPERACIONES</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+
     <style>
         :root {
             --neon-green: #00ff41;
             --blood-red: #ff0000;
-            --dark-bg: #0a0a0a;
+            --dark-bg: #050505;
+            --terminal-font: 'Courier New', Courier, monospace;
         }
 
+        /* --- RESET Y ESTRUCTURA BASE --- */
+        * { box-sizing: border-box; }
         body, html {
             background-color: var(--dark-bg);
             color: var(--neon-green);
-            font-family: 'Courier New', Courier, monospace;
+            font-family: var(--terminal-font);
             margin: 0;
-            height: 100%;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* --- ESTILOS DE PANTALLA DE CARGA (SPLASH) --- */
+        /* --- PANTALLA DE CARGA (MOBILE FRIENDLY) --- */
         #splash-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: black;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 100;
-            transition: opacity 1.5s ease;
+            z-index: 1000;
+            transition: opacity 1s ease;
         }
 
         #splash-image {
-            max-width: 80%;
-            max-height: 60%;
+            max-width: 70%;
+            max-height: 50%;
             border: 2px solid var(--blood-red);
-            box-shadow: 0 0 20px var(--blood-red);
-            filter: grayscale(100%) contrast(120%);
+            box-shadow: 0 0 15px var(--blood-red);
+            object-fit: contain;
         }
 
         .loading-text {
-            margin-top: 20px;
-            font-size: 1.2rem;
-            letter-spacing: 5px;
+            margin-top: 25px;
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            text-align: center;
             animation: blink 0.8s infinite;
         }
 
-        /* --- ESTILOS PRINCIPALES --- */
+        /* --- LAYOUT PRINCIPAL --- */
         #main-content {
-            opacity: 0; /* Oculto al inicio */
-            transition: opacity 2s ease;
+            flex: 1;
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            position: relative;
         }
 
-        #overlay-scan {
+        /* Efecto de líneas de TV vieja */
+        #scanlines {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 3px 100%;
             pointer-events: none;
-            z-index: 10;
+            z-index: 5;
         }
 
+        /* Cabecera optimizada */
         header {
-            padding: 20px;
-            border-bottom: 2px solid var(--blood-red);
-            text-shadow: 0 0 5px var(--blood-red);
-        }
-
-        .terminal {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            font-size: 14px;
-            line-height: 1.5;
+            padding: 10px;
+            border-bottom: 1px solid var(--blood-red);
+            background: rgba(0,0,0,0.8);
         }
 
         .cia-header {
-            color: white;
+            border: 1px solid #fff;
+            color: #fff;
+            font-size: 0.7rem;
             text-align: center;
-            border: 1px solid white;
-            padding: 10px;
-            margin-bottom: 20px;
+            padding: 5px;
+            margin-bottom: 5px;
         }
 
-        .power-phrase {
+        .phrase {
+            font-size: 0.65rem;
             color: var(--blood-red);
-            font-style: italic;
             text-align: center;
-            margin: 20px 0;
-            animation: pulse 2s infinite;
+            margin: 5px 0;
+            text-transform: uppercase;
         }
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        @keyframes blink { 50% { opacity: 0; } }
-
-        .input-line {
-            display: flex;
+        /* --- ÁREA DE TERMINAL (SCROLL) --- */
+        .terminal {
+            flex: 1;
+            overflow-y: auto;
             padding: 15px;
-            background: #000;
-            border-top: 1px solid #333;
-            align-items: center;
+            font-size: 13px;
+            scroll-behavior: smooth;
         }
+
+        .msg-line { margin-bottom: 8px; border-left: 2px solid #222; padding-left: 8px; }
+        .timestamp { color: #555; font-size: 0.7rem; margin-right: 5px; }
+        .user-tag { color: #fff; font-weight: bold; }
+        
+        /* --- BARRA DE ENTRADA (MÓVIL ADAPTADO) --- */
+        .input-area {
+            background: #000;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #333;
+            gap: 10px;
+        }
+
+        .prompt { color: var(--neon-green); font-size: 0.8rem; white-space: nowrap; }
 
         #command-line {
+            flex: 1;
             background: transparent;
             border: none;
             color: var(--neon-green);
-            flex-grow: 1;
             outline: none;
             font-family: inherit;
-            font-size: 16px;
+            font-size: 16px; /* Evita zoom automático en iPhone */
         }
 
-        .system-msg { color: #888; }
+        .clip-btn {
+            color: var(--blood-red);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        /* --- ANIMACIONES --- */
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Ajustes para PC */
+        @media (min-width: 768px) {
+            .cia-header { font-size: 1rem; padding: 10px; }
+            .phrase { font-size: 0.85rem; }
+            .terminal { font-size: 15px; padding: 30px; }
+            .prompt { font-size: 1rem; }
+        }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <img src="1769312279088.jpg" id="splash-image" alt="LEGIÓN SCARFACE">
-        <div class="loading-text">AUTENTICANDO ACCESO...</div>
+        <img src="NOMBRE_DE_TU_IMAGEN.jpg" id="splash-image" alt="SCARFACE">
+        <div class="loading-text">ESTABLECIENDO CONEXIÓN P2P...</div>
     </div>
 
     <div id="main-content">
-        <div id="overlay-scan"></div>
-
+        <div id="scanlines"></div>
+        
         <header>
-            <div class="cia-header">
-                CONFIDENCIAL // LEGIÓN SCARFACE // ACCESO NIVEL 7
-            </div>
-            <div class="power-phrase">
-                "En el silencio de la red, nuestra palabra es el acero que forja la libertad. La justicia no se suplica ante el tirano; se arrebata en la sombra."
-            </div>
+            <div class="cia-header">SISTEMA OPERATIVO SCARFACE V7.0 - ACCESO RESTRINGIDO</div>
+            <div class="phrase">"Nuestra palabra es el acero que forja la libertad"</div>
         </header>
 
         <div class="terminal" id="terminal">
-            <p class="system-msg">[...] Inicializando protocolo de cifrado AES-256...</p>
-            <p class="system-msg">[...] Conectando con nodos descentralizados...</p>
-            <p>> BIENVENIDO A LA CENTRAL LEGIÓN SCARFACE.</p>
-            <p>> Escriba <strong>/register</strong> para generar su identidad secreta.</p>
+            <p style="color:#888;">> Núcleo cargado. Red Gun.js vinculada.</p>
+            <p style="color:#888;">> Use <b>/register</b> para descargar su llave.</p>
+            <hr style="border:0; border-top:1px solid #222; margin:10px 0;">
         </div>
 
-        <div class="input-line">
-            <span>SCARFACE_USER@LEGION:~$ &nbsp;</span>
-            
-            <label for="file-upload" style="cursor:pointer; color:red; margin-right:10px;" title="Adjuntar Archivo Encritpado">[📎]</label>
-            <input type="file" id="file-upload" style="display:none;" onchange="procesarArchivo(this)">
-            
-            <input type="text" id="command-line" autofocus>
+        <div class="input-area">
+            <span class="prompt">ID@LEGION:~$</span>
+            <input type="text" id="command-line" autocomplete="off" autofocus>
+            <label for="file-upload" class="clip-btn" title="Adjuntar Archivo">📎</label>
+            <input type="file" id="file-upload" style="display:none;" onchange="handleFile(this)">
         </div>
     </div>
 
     <script>
-        // 1. LÓGICA DE TRANSICIÓN (SPLASH SCREEN)
-        window.onload = () => {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                const main = document.getElementById('main-content');
-                
-                splash.style.opacity = '0';
-                main.style.opacity = '1';
-                
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                }, 1500);
-            }, 3000); // Tiempo de espera antes de entrar
-        };
+        // --- CONFIGURACIÓN RED P2P ---
+        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+        const db = gun.get('legion-scarface-secure-v7');
 
-        // 2. CONTRAMEDIDA ANTI-INVASOR (CIA STYLE)
-        (function() {
-            const threshold = 160;
-            setInterval(() => {
-                if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
-                    document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%;'>⚠️ INTENTO DE INTRUSIÓN DETECTADO. <br> IP RASTREADA. <br> SESIÓN EXPULSADA.</h1>";
-                    setTimeout(() => window.location.href = "about:blank", 2000);
-                }
-            }, 1000);
-        })();
-
-        // REFERENCIAS DOM
-        const input = document.getElementById('command-line');
         const terminal = document.getElementById('terminal');
+        const input = document.getElementById('command-line');
 
-        // 3. FUNCIÓN DE IMPRESIÓN EN TERMINAL
-        function imprimirEnTerminal(texto) {
-            terminal.innerHTML += `<p style="color: var(--neon-green);">> ${texto}</p>`;
-            terminal.scrollTop = terminal.scrollHeight;
-        }
-
-        // 4. MÓDULO DE IDENTIDAD CRIPTOGRÁFICA (/register)
-        async function generarIdentidadLegion() {
-            imprimirEnTerminal("Generando capas de cifrado...");
-            
-            const keyPair = await window.crypto.subtle.generateKey(
-                {
-                    name: "RSA-OAEP",
-                    modulusLength: 2048,
-                    publicExponent: new Uint8Array([1, 0, 1]),
-                    hash: "SHA-256",
-                },
-                true,
-                ["encrypt", "decrypt"]
-            );
-
-            const exportedPrivateKey = await window.crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
-            const blob = new Blob([exportedPrivateKey], {type: "application/octet-stream"});
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "LEGION_KEY_ACCESS.skf"; 
-            a.click();
-
-            imprimirEnTerminal("✅ IDENTIDAD GENERADA. LLAVE DESCARGADA.");
-            imprimirEnTerminal("⚠️ GUARDE SU ARCHIVO .skf EN UN LUGAR SEGURO.");
-        }
-
-        // 5. MÓDULO DE CARGA DE ARCHIVOS
-        function procesarArchivo(inputElement) {
-            const file = inputElement.files[0];
-            if (!file) return;
-
-            if (file.size > 2 * 1024 * 1024) {
-                imprimirEnTerminal("❌ ERROR: ARCHIVO DEMASIADO PESADO. MÁXIMO 2MB.");
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Data = e.target.result;
-                const fileType = file.type.split('/')[0];
+        // --- RECEPCIÓN DE MENSAJES ---
+        db.map().once((data, id) => {
+            if (data && data.msg) {
+                const time = new Date(data.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const isImg = data.msg.includes('data:image');
                 
-                imprimirEnTerminal(`📤 PROCESANDO: ${file.name}`);
+                const div = document.createElement('div');
+                div.className = 'msg-line';
+                div.innerHTML = `<span class="timestamp">[${time}]</span> ` + 
+                                (isImg ? `<br>${data.msg}` : `<span class="user-tag">></span> ${data.msg}`);
                 
-                // Visualización local
-                if (fileType === 'image') {
-                    terminal.innerHTML += `<div style="margin:10px 0;"><img src="${base64Data}" style="max-width:200px; border:1px solid red;"></div>`;
-                } else {
-                    imprimirEnTerminal(`[ ARCHIVO BINARIO ENCRIPTADO LISTO ]`);
-                }
-                terminal.scrollTop = terminal.scrollHeight;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // 6. CONTROLADOR MAESTRO DE EVENTOS (CHAT + COMANDOS)
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const val = input.value.trim();
-                if (val === "") return;
-
-                if (val.toLowerCase() === '/register') {
-                    generarIdentidadLegion();
-                } else {
-                    // Chat normal (eco local por ahora)
-                    terminal.innerHTML += `<p><span style="color:white;">USUARIO:</span> ${val}</p>`;
-                }
-                
-                input.value = '';
+                terminal.appendChild(div);
                 terminal.scrollTop = terminal.scrollHeight;
             }
         });
 
+        // --- ENVÍO DE MENSAJES ---
+        input.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                const val = input.value.trim();
+                if (!val) return;
+
+                if (val.toLowerCase() === '/register') {
+                    await generarLlave();
+                } else {
+                    db.set({ msg: val, time: Date.now() });
+                }
+                input.value = '';
+            }
+        });
+
+        // --- PROCESAR ARCHIVOS ---
+        function handleFile(el) {
+            const file = el.files[0];
+            if (file.size > 1024 * 1024) return alert("Máximo 1MB para red P2P");
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imgTag = `<img src="${e.target.result}" style="max-width:250px; border:1px solid red; margin:10px 0; display:block;">`;
+                db.set({ msg: imgTag, time: Date.now() });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- GENERAR LLAVE RSA ---
+        async function generarLlave() {
+            const pair = await window.crypto.subtle.generateKey(
+                { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1,0,1]), hash: "SHA-256" },
+                true, ["encrypt", "decrypt"]
+            );
+            const exp = await window.crypto.subtle.exportKey("pkcs8", pair.privateKey);
+            const blob = new Blob([exp], {type: "application/octet-stream"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = "LEGION_ACCESS.skf"; a.click();
+            imprimirSistema("LLAVE GENERADA EXITOSAMENTE.");
+        }
+
+        function imprimirSistema(t) {
+            terminal.innerHTML += `<p style="color:yellow;">> SISTEMA: ${t}</p>`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // --- CONTROL DE PANTALLA ---
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.opacity = '0';
+                document.getElementById('main-content').style.opacity = '1';
+                setTimeout(() => document.getElementById('splash-screen').style.display='none', 1000);
+            }, 3000);
+        };
     </script>
 </body>
 </html>
