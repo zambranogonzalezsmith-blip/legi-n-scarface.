@@ -6,6 +6,10 @@
     <title>LEGIÓN SCARFACE | OPERACIONES</title>
     
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    
+    <script src="security-canary.js"></script>
+    <script src="network-shield.js"></script>
+    <script src="data-obfuscator.js"></script>
 
     <style>
         :root {
@@ -85,7 +89,7 @@
             display: none; 
             flex-direction: column;
             position: relative;
-            transition: filter 0.3s ease; /* Para el efecto blur */
+            transition: filter 0.3s ease;
         }
 
         #scanlines {
@@ -100,7 +104,6 @@
         .cia-header { border: 1px solid #fff; color: #fff; font-size: 0.7rem; text-align: center; padding: 5px; margin-bottom: 5px; }
         .phrase { font-size: 0.65rem; color: var(--blood-red); text-align: center; margin: 5px 0; text-transform: uppercase; }
 
-        /* MARCA DE AGUA CORREGIDA */
         .terminal { 
             flex: 1; 
             overflow-y: auto; 
@@ -119,7 +122,7 @@
             width: 70%; height: 70%;
             background: url('legión-scarface.png') no-repeat center;
             background-size: contain;
-            opacity: 0.12; /* Aumentado para mejor visibilidad */
+            opacity: 0.12;
             pointer-events: none;
             z-index: -1;
         }
@@ -133,7 +136,7 @@
             flex: 1; background: transparent; border: none; 
             color: var(--neon-green); outline: none; 
             font-family: inherit; font-size: 16px; 
-            -webkit-user-select: text; user-select: text; /* Único lugar donde se permite texto */
+            -webkit-user-select: text; user-select: text;
         }
         
         .clip-btn { color: var(--blood-red); font-size: 1.5rem; cursor: pointer; padding: 0 5px; }
@@ -148,7 +151,9 @@
         }
     </style>
 </head>
-<body oncontextmenu="return false;"> <div id="lock-screen">
+<body oncontextmenu="return false;">
+
+    <div id="lock-screen">
         <div class="lock-box">
             <h2 style="color:var(--blood-red); margin:0;">STRICT ACCESS</h2>
             <p style="font-size: 0.8rem; color: #888;">IDENTIDAD REQUERIDA PARA INICIALIZAR TERMINAL</p>
@@ -191,6 +196,7 @@
     </div>
 
     <script>
+        // Inicialización de Gun (Accesible para Network Shield)
         const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
         const db = gun.get('legion-scarface-secure-v7');
         const terminal = document.getElementById('terminal');
@@ -198,25 +204,18 @@
         const mainContent = document.getElementById('main-content');
         let guestSession = false;
 
-        // --- BLINDAJE DE SEGURIDAD JAVASCRIPT ---
+        // --- BLINDAJE DE SEGURIDAD INTERNA ---
         
-        // Bloqueo de teclas de extracción
         window.addEventListener('keydown', (e) => {
             if (e.ctrlKey && (e.key === 's' || e.key === 'u' || e.key === 'p' || e.key === 'c')) {
                 e.preventDefault();
-                imprimirSistema("ACCIÓN BLOQUEADA POR PROTOCOLO DE SEGURIDAD.");
+                imprimirSistema("ACCIÓN BLOQUEADA POR PROTOCOLO.");
             }
         });
 
-        // Anti-Captura por pérdida de foco
-        window.onblur = () => {
-            mainContent.style.filter = "blur(15px)";
-        };
-        window.onfocus = () => {
-            mainContent.style.filter = "none";
-        };
+        window.onblur = () => { mainContent.style.filter = "blur(15px)"; };
+        window.onfocus = () => { mainContent.style.filter = "none"; };
 
-        // Detección de Consola (Inspección)
         setInterval(() => {
             if (window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160) {
                 location.reload(); 
@@ -252,7 +251,7 @@
                     splash.style.display = 'none';
                     input.focus();
                     if(guestSession) {
-                        imprimirSistema("MODO INVITADO ACTIVO. ACCESO LIMITADO.");
+                        imprimirSistema("MODO INVITADO ACTIVO.");
                     } else {
                         activarRed();
                     }
@@ -263,10 +262,13 @@
         function activarRed() {
             db.map().once((data) => {
                 if (data && data.msg) {
+                    // DECODIFICACIÓN (Usando data-obfuscator.js)
+                    const mensajeClaro = typeof Obfuscator !== 'undefined' ? Obfuscator.decode(data.msg) : data.msg;
+                    
                     const time = new Date(data.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     const div = document.createElement('div');
                     div.className = 'msg-line';
-                    div.innerHTML = `<span class="timestamp">[${time}]</span> ${data.msg}`;
+                    div.innerHTML = `<span class="timestamp">[${time}]</span> ${mensajeClaro}`;
                     terminal.appendChild(div);
                     terminal.scrollTop = terminal.scrollHeight;
                 }
@@ -277,14 +279,27 @@
             if (e.key === 'Enter') {
                 const val = input.value.trim();
                 if (!val) return;
+                const cmd = val.toLowerCase();
 
-                if (val.toLowerCase() === '/register') {
+                // COMANDOS DE PÁNICO (Usando security-canary.js)
+                if (cmd === '/burn' || cmd === '/panic' || cmd === '/exit') {
+                    if (typeof ejecutarModoPanico === 'function') {
+                        ejecutarModoPanico("Manual");
+                    } else {
+                        location.reload();
+                    }
+                    return;
+                }
+
+                if (cmd === '/register') {
                     await generarLlave();
                 } else {
                     if (guestSession) {
-                        imprimirSistema("ERROR: CARGUE LLAVE .SKF PARA ENVIAR DATOS.");
+                        imprimirSistema("ERROR: CARGUE LLAVE .SKF.");
                     } else {
-                        db.set({ msg: val, time: Date.now() });
+                        // CODIFICACIÓN (Usando data-obfuscator.js)
+                        const msgOfuscado = typeof Obfuscator !== 'undefined' ? Obfuscator.encode(val) : val;
+                        db.set({ msg: msgOfuscado, time: Date.now() });
                     }
                 }
                 input.value = '';
@@ -292,7 +307,7 @@
         });
 
         async function generarLlave() {
-            imprimirSistema("GENERANDO CREDENCIAL RSA...");
+            imprimirSistema("GENERANDO CREDENCIAL...");
             try {
                 const pair = await window.crypto.subtle.generateKey(
                     { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1,0,1]), hash: "SHA-256" },
@@ -303,9 +318,9 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url; a.download = "LEGION_ACCESS.skf"; a.click();
-                imprimirSistema("LLAVE GENERADA. CARGUELA EN EL LOGIN.");
+                imprimirSistema("LLAVE GENERADA.");
             } catch (err) {
-                imprimirSistema("ERROR DE ENCRIPTACIÓN.");
+                imprimirSistema("ERROR ENCRIPTACIÓN.");
             }
         }
 
@@ -314,8 +329,10 @@
             const file = el.files[0];
             const reader = new FileReader();
             reader.onload = (e) => {
-                const img = `<img src="${e.target.result}" style="max-width:200px; border:1px solid red; display:block; margin:10px 0;">`;
-                db.set({ msg: img, time: Date.now() });
+                const imgContent = `<img src="${e.target.result}" style="max-width:200px; border:1px solid red; display:block; margin:10px 0;">`;
+                // También ofuscamos la cadena de la imagen
+                const imgOfuscada = typeof Obfuscator !== 'undefined' ? Obfuscator.encode(imgContent) : imgContent;
+                db.set({ msg: imgOfuscada, time: Date.now() });
             };
             reader.readAsDataURL(file);
         }
