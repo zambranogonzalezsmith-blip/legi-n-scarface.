@@ -11,15 +11,53 @@
             --dark-bg: #0a0a0a;
         }
 
-        body {
+        body, html {
             background-color: var(--dark-bg);
             color: var(--neon-green);
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* --- ESTILOS DE PANTALLA DE CARGA (SPLASH) --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1.5s ease;
+        }
+
+        #splash-image {
+            max-width: 80%;
+            max-height: 60%;
+            border: 2px solid var(--blood-red);
+            box-shadow: 0 0 20px var(--blood-red);
+            filter: grayscale(100%) contrast(120%);
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            letter-spacing: 5px;
+            animation: blink 0.8s infinite;
+        }
+
+        /* --- ESTILOS PRINCIPALES --- */
+        #main-content {
+            opacity: 0; /* Oculto al inicio */
+            transition: opacity 2s ease;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            overflow: hidden;
         }
 
         #overlay-scan {
@@ -62,17 +100,15 @@
             animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes blink { 50% { opacity: 0; } }
 
         .input-line {
             display: flex;
             padding: 15px;
             background: #000;
             border-top: 1px solid #333;
+            align-items: center;
         }
 
         #command-line {
@@ -89,33 +125,59 @@
     </style>
 </head>
 <body>
-    <div id="overlay-scan"></div>
 
-    <header>
-        <div class="cia-header">
-            CONFIDENCIAL // LEGIÓN SCARFACE // ACCESO NIVEL 7
-        </div>
-        <div class="power-phrase">
-            "En el silencio de la red, nuestra palabra es el acero que forja la libertad. La justicia no se suplica ante el tirano; se arrebata en la sombra."
-        </div>
-    </header>
-
-    <div class="terminal" id="terminal">
-        <p class="system-msg">[...] Inicializando protocolo de cifrado AES-256...</p>
-        <p class="system-msg">[...] Conectando con nodos descentralizados...</p>
-        <p>> BIENVENIDO A LA CENTRAL LEGIÓN SCARFACE.</p>
-        <p>> Esperando comandos del operador...</p>
+    <div id="splash-screen">
+        <img src="NOMBRE_DE_TU_IMAGEN.jpg" id="splash-image" alt="LEGIÓN SCARFACE">
+        <div class="loading-text">AUTENTICANDO ACCESO...</div>
     </div>
 
-    <div class="input-line">
-        <span>SCARFACE_USER@LEGION:~$ &nbsp;</span>
-        <input type="text" id="command-line" autofocus>
+    <div id="main-content">
+        <div id="overlay-scan"></div>
+
+        <header>
+            <div class="cia-header">
+                CONFIDENCIAL // LEGIÓN SCARFACE // ACCESO NIVEL 7
+            </div>
+            <div class="power-phrase">
+                "En el silencio de la red, nuestra palabra es el acero que forja la libertad. La justicia no se suplica ante el tirano; se arrebata en la sombra."
+            </div>
+        </header>
+
+        <div class="terminal" id="terminal">
+            <p class="system-msg">[...] Inicializando protocolo de cifrado AES-256...</p>
+            <p class="system-msg">[...] Conectando con nodos descentralizados...</p>
+            <p>> BIENVENIDO A LA CENTRAL LEGIÓN SCARFACE.</p>
+            <p>> Escriba <strong>/register</strong> para generar su identidad secreta.</p>
+        </div>
+
+        <div class="input-line">
+            <span>SCARFACE_USER@LEGION:~$ &nbsp;</span>
+            
+            <label for="file-upload" style="cursor:pointer; color:red; margin-right:10px;" title="Adjuntar Archivo Encritpado">[📎]</label>
+            <input type="file" id="file-upload" style="display:none;" onchange="procesarArchivo(this)">
+            
+            <input type="text" id="command-line" autofocus>
+        </div>
     </div>
 
     <script>
-        // CONTRAMEDIDA ANTI-INVASOR (CIA STYLE)
+        // 1. LÓGICA DE TRANSICIÓN (SPLASH SCREEN)
+        window.onload = () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                const main = document.getElementById('main-content');
+                
+                splash.style.opacity = '0';
+                main.style.opacity = '1';
+                
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                }, 1500);
+            }, 3000); // Tiempo de espera antes de entrar
+        };
+
+        // 2. CONTRAMEDIDA ANTI-INVASOR (CIA STYLE)
         (function() {
-            const devtools = { open: false };
             const threshold = 160;
             setInterval(() => {
                 if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
@@ -125,66 +187,90 @@
             }, 1000);
         })();
 
-        // MANEJO DE CHAT (BÁSICO)
+        // REFERENCIAS DOM
         const input = document.getElementById('command-line');
         const terminal = document.getElementById('terminal');
 
+        // 3. FUNCIÓN DE IMPRESIÓN EN TERMINAL
+        function imprimirEnTerminal(texto) {
+            terminal.innerHTML += `<p style="color: var(--neon-green);">> ${texto}</p>`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // 4. MÓDULO DE IDENTIDAD CRIPTOGRÁFICA (/register)
+        async function generarIdentidadLegion() {
+            imprimirEnTerminal("Generando capas de cifrado...");
+            
+            const keyPair = await window.crypto.subtle.generateKey(
+                {
+                    name: "RSA-OAEP",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([1, 0, 1]),
+                    hash: "SHA-256",
+                },
+                true,
+                ["encrypt", "decrypt"]
+            );
+
+            const exportedPrivateKey = await window.crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
+            const blob = new Blob([exportedPrivateKey], {type: "application/octet-stream"});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "LEGION_KEY_ACCESS.skf"; 
+            a.click();
+
+            imprimirEnTerminal("✅ IDENTIDAD GENERADA. LLAVE DESCARGADA.");
+            imprimirEnTerminal("⚠️ GUARDE SU ARCHIVO .skf EN UN LUGAR SEGURO.");
+        }
+
+        // 5. MÓDULO DE CARGA DE ARCHIVOS
+        function procesarArchivo(inputElement) {
+            const file = inputElement.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                imprimirEnTerminal("❌ ERROR: ARCHIVO DEMASIADO PESADO. MÁXIMO 2MB.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                const fileType = file.type.split('/')[0];
+                
+                imprimirEnTerminal(`📤 PROCESANDO: ${file.name}`);
+                
+                // Visualización local
+                if (fileType === 'image') {
+                    terminal.innerHTML += `<div style="margin:10px 0;"><img src="${base64Data}" style="max-width:200px; border:1px solid red;"></div>`;
+                } else {
+                    imprimirEnTerminal(`[ ARCHIVO BINARIO ENCRIPTADO LISTO ]`);
+                }
+                terminal.scrollTop = terminal.scrollHeight;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 6. CONTROLADOR MAESTRO DE EVENTOS (CHAT + COMANDOS)
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                const val = input.value;
-                terminal.innerHTML += `<p><span style="color:white;">></span> ${val}</p>`;
+                const val = input.value.trim();
+                if (val === "") return;
+
+                if (val.toLowerCase() === '/register') {
+                    generarIdentidadLegion();
+                } else {
+                    // Chat normal (eco local por ahora)
+                    terminal.innerHTML += `<p><span style="color:white;">USUARIO:</span> ${val}</p>`;
+                }
+                
                 input.value = '';
                 terminal.scrollTop = terminal.scrollHeight;
             }
         });
-        // --- MÓDULO DE IDENTIDAD CRIPTOGRÁFICA ---
 
-async function generarIdentidadLegion() {
-    console.log("Generando capas de cifrado...");
-    
-    // Genera un par de llaves de alta seguridad (clase militar)
-    const keyPair = await window.crypto.subtle.generateKey(
-        {
-            name: "RSA-OAEP",
-            modulusLength: 2048,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: "SHA-256",
-        },
-        true,
-        ["encrypt", "decrypt"]
-    );
-
-    // Exportar la llave para que el usuario la guarde (su "credencial")
-    const exportedPrivateKey = await window.crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
-    const blob = new Blob([exportedPrivateKey], {type: "application/octet-stream"});
-    const url = URL.createObjectURL(blob);
-    
-    // Crear descarga automática de la llave
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "LEGION_KEY_ACCESS.skf"; // Extensión personalizada Scarface
-    a.click();
-
-    imprimirEnTerminal("✅ IDENTIDAD GENERADA. LLAVE DESCARGADA.");
-    imprimirEnTerminal("⚠️ GUARDE SU ARCHIVO .skf EN UN LUGAR SEGURO. SIN ÉL, NO PODRÁ VOLVER A ENTRAR.");
-}
-
-function imprimirEnTerminal(texto) {
-    const term = document.getElementById('terminal');
-    term.innerHTML += `<p style="color: #00ff41;">> ${texto}</p>`;
-    term.scrollTop = term.scrollHeight;
-}
-
-// Escuchar comando de registro
-input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        const cmd = input.value.toLowerCase();
-        if (cmd === '/register') {
-            generarIdentidadLegion();
-        }
-        input.value = '';
-    }
-});
     </script>
 </body>
 </html>
