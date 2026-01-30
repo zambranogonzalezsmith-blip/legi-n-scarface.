@@ -137,6 +137,54 @@
                 terminal.scrollTop = terminal.scrollHeight;
             }
         });
+        // --- MÓDULO DE IDENTIDAD CRIPTOGRÁFICA ---
+
+async function generarIdentidadLegion() {
+    console.log("Generando capas de cifrado...");
+    
+    // Genera un par de llaves de alta seguridad (clase militar)
+    const keyPair = await window.crypto.subtle.generateKey(
+        {
+            name: "RSA-OAEP",
+            modulusLength: 2048,
+            publicExponent: new Uint8Array([1, 0, 1]),
+            hash: "SHA-256",
+        },
+        true,
+        ["encrypt", "decrypt"]
+    );
+
+    // Exportar la llave para que el usuario la guarde (su "credencial")
+    const exportedPrivateKey = await window.crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
+    const blob = new Blob([exportedPrivateKey], {type: "application/octet-stream"});
+    const url = URL.createObjectURL(blob);
+    
+    // Crear descarga automática de la llave
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "LEGION_KEY_ACCESS.skf"; // Extensión personalizada Scarface
+    a.click();
+
+    imprimirEnTerminal("✅ IDENTIDAD GENERADA. LLAVE DESCARGADA.");
+    imprimirEnTerminal("⚠️ GUARDE SU ARCHIVO .skf EN UN LUGAR SEGURO. SIN ÉL, NO PODRÁ VOLVER A ENTRAR.");
+}
+
+function imprimirEnTerminal(texto) {
+    const term = document.getElementById('terminal');
+    term.innerHTML += `<p style="color: #00ff41;">> ${texto}</p>`;
+    term.scrollTop = term.scrollHeight;
+}
+
+// Escuchar comando de registro
+input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const cmd = input.value.toLowerCase();
+        if (cmd === '/register') {
+            generarIdentidadLegion();
+        }
+        input.value = '';
+    }
+});
     </script>
 </body>
 </html>
