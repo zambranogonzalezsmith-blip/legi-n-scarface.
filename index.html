@@ -26,7 +26,7 @@
             display: flex; flex-direction: column;
         }
 
-        /* --- PANTALLA DE BLOQUEO (GATEKEEPER) --- */
+        /* --- PANTALLA DE BLOQUEO --- */
         #lock-screen {
             position: fixed; inset: 0;
             background: black;
@@ -53,7 +53,7 @@
             text-transform: uppercase;
         }
 
-        /* --- PANTALLA DE CARGA (SPLASH) --- */
+        /* --- PANTALLA DE CARGA --- */
         #splash-screen {
             position: fixed; inset: 0;
             background: black;
@@ -91,7 +91,6 @@
         .cia-header { border: 1px solid #fff; color: #fff; font-size: 0.7rem; text-align: center; padding: 5px; margin-bottom: 5px; }
         .phrase { font-size: 0.65rem; color: var(--blood-red); text-align: center; margin: 5px 0; text-transform: uppercase; }
 
-        /* MODIFICACIÓN: Terminal con marca de agua */
         .terminal { 
             flex: 1; 
             overflow-y: auto; 
@@ -109,7 +108,7 @@
             width: 80%; height: 80%;
             background: url('legión-scarface.png') no-repeat center;
             background-size: contain;
-            opacity: 0.07; /* Sutil marca de agua */
+            opacity: 0.07;
             pointer-events: none;
             z-index: -1;
         }
@@ -128,7 +127,6 @@
             .cia-header { font-size: 1rem; padding: 10px; }
             .phrase { font-size: 0.85rem; }
             .terminal { font-size: 15px; padding: 30px; }
-            .terminal::before { width: 50%; height: 50%; } /* Escudo más centrado en PC */
         }
     </style>
 </head>
@@ -162,17 +160,15 @@
         </header>
 
         <div class="terminal" id="terminal">
-            <p style="color:yellow;">> SISTEMA DESBLOQUEADO.</p>
+            <p id="init-msg" style="color:yellow;">> SISTEMA DESBLOQUEADO.</p>
             <p style="color:#888;">> Use <b>/register</b> si necesita una nueva llave.</p>
             <hr style="border:0; border-top:1px solid #222; margin:10px 0;">
         </div>
 
         <div class="input-area">
             <span class="prompt" style="color:var(--neon-green); font-size:0.8rem;">ID@LEGION:~$</span>
-            <input type="text" id="command-line" autocomplete="off" autofocus>
-            
+            <input type="text" id="command-line" autocomplete="off">
             <span class="guide-btn" onclick="window.open('guia.html', '_blank')" title="Manual de Operaciones">📖</span>
-            
             <label for="file-upload" class="clip-btn" title="Adjuntar Archivo">📎</label>
             <input type="file" id="file-upload" style="display:none;" onchange="handleFile(this)">
         </div>
@@ -183,9 +179,11 @@
         const db = gun.get('legion-scarface-secure-v7');
         const terminal = document.getElementById('terminal');
         const input = document.getElementById('command-line');
+        let guestSession = false;
 
         function verificarAcceso(el) {
             if (el.files[0].name.endsWith('.skf')) {
+                guestSession = false;
                 iniciarSistema();
             } else {
                 alert("ARCHIVO NO VÁLIDO.");
@@ -193,11 +191,11 @@
         }
 
         function modoInvitado() {
-            alert("MODO INVITADO: Solo podrá usar el comando /register. El chat está bloqueado.");
-            iniciarSistema(true);
+            guestSession = true;
+            iniciarSistema();
         }
 
-        function iniciarSistema(isGuest = false) {
+        function iniciarSistema() {
             document.getElementById('lock-screen').style.display = 'none';
             const splash = document.getElementById('splash-screen');
             splash.style.display = 'flex';
@@ -208,7 +206,12 @@
                 setTimeout(() => {
                     document.getElementById('main-content').style.opacity = '1';
                     splash.style.display = 'none';
-                    if(!isGuest) activarRed();
+                    input.focus();
+                    if(guestSession) {
+                        imprimirSistema("MODO INVITADO ACTIVO. CHAT DESHABILITADO.");
+                    } else {
+                        activarRed();
+                    }
                 }, 1000);
             }, 2500);
         }
@@ -230,29 +233,42 @@
             if (e.key === 'Enter') {
                 const val = input.value.trim();
                 if (!val) return;
+
+                // EL COMANDO /REGISTER SIEMPRE FUNCIONA
                 if (val.toLowerCase() === '/register') {
                     await generarLlave();
                 } else {
-                    db.set({ msg: val, time: Date.now() });
+                    // EL CHAT SOLO FUNCIONA SI NO ES INVITADO
+                    if (guestSession) {
+                        imprimirSistema("ERROR: ACCESO DENEGADO. CARGUE LLAVE .SKF PARA CHATEAR.");
+                    } else {
+                        db.set({ msg: val, time: Date.now() });
+                    }
                 }
                 input.value = '';
             }
         });
 
         async function generarLlave() {
-            const pair = await window.crypto.subtle.generateKey(
-                { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1,0,1]), hash: "SHA-256" },
-                true, ["encrypt", "decrypt"]
-            );
-            const exp = await window.crypto.subtle.exportKey("pkcs8", pair.privateKey);
-            const blob = new Blob([exp], {type: "application/octet-stream"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = "LEGION_ACCESS.skf"; a.click();
-            imprimirSistema("LLAVE GENERADA.");
+            imprimirSistema("GENERANDO CREDENCIAL RSA-OAEP...");
+            try {
+                const pair = await window.crypto.subtle.generateKey(
+                    { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1,0,1]), hash: "SHA-256" },
+                    true, ["encrypt", "decrypt"]
+                );
+                const exp = await window.crypto.subtle.exportKey("pkcs8", pair.privateKey);
+                const blob = new Blob([exp], {type: "application/octet-stream"});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = "LEGION_ACCESS.skf"; a.click();
+                imprimirSistema("LLAVE GENERADA EXITOSAMENTE. REINICIE Y CARGUE EL ARCHIVO.");
+            } catch (err) {
+                imprimirSistema("ERROR CRÍTICO EN GENERACIÓN.");
+            }
         }
 
         function handleFile(el) {
+            if (guestSession) return alert("Invitados no pueden enviar archivos.");
             const file = el.files[0];
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -263,7 +279,10 @@
         }
 
         function imprimirSistema(t) {
-            terminal.innerHTML += `<p style="color:yellow;">> SISTEMA: ${t}</p>`;
+            const p = document.createElement('p');
+            p.style.color = "yellow";
+            p.innerHTML = `> SISTEMA: ${t}`;
+            terminal.appendChild(p);
             terminal.scrollTop = terminal.scrollHeight;
         }
     </script>
