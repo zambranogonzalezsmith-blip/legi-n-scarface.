@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGIÓN SCARFACE | CENTRAL</title>
+    <style>
+        :root {
+            --neon-green: #00ff41;
+            --blood-red: #ff0000;
+            --dark-bg: #0a0a0a;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--neon-green);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #overlay-scan {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        header {
+            padding: 20px;
+            border-bottom: 2px solid var(--blood-red);
+            text-shadow: 0 0 5px var(--blood-red);
+        }
+
+        .terminal {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .cia-header {
+            color: white;
+            text-align: center;
+            border: 1px solid white;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        .power-phrase {
+            color: var(--blood-red);
+            font-style: italic;
+            text-align: center;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .input-line {
+            display: flex;
+            padding: 15px;
+            background: #000;
+            border-top: 1px solid #333;
+        }
+
+        #command-line {
+            background: transparent;
+            border: none;
+            color: var(--neon-green);
+            flex-grow: 1;
+            outline: none;
+            font-family: inherit;
+            font-size: 16px;
+        }
+
+        .system-msg { color: #888; }
+    </style>
+</head>
+<body>
+    <div id="overlay-scan"></div>
+
+    <header>
+        <div class="cia-header">
+            CONFIDENCIAL // LEGIÓN SCARFACE // ACCESO NIVEL 7
+        </div>
+        <div class="power-phrase">
+            "En el silencio de la red, nuestra palabra es el acero que forja la libertad. La justicia no se suplica ante el tirano; se arrebata en la sombra."
+        </div>
+    </header>
+
+    <div class="terminal" id="terminal">
+        <p class="system-msg">[...] Inicializando protocolo de cifrado AES-256...</p>
+        <p class="system-msg">[...] Conectando con nodos descentralizados...</p>
+        <p>> BIENVENIDO A LA CENTRAL LEGIÓN SCARFACE.</p>
+        <p>> Esperando comandos del operador...</p>
+    </div>
+
+    <div class="input-line">
+        <span>SCARFACE_USER@LEGION:~$ &nbsp;</span>
+        <input type="text" id="command-line" autofocus>
+    </div>
+
+    <script>
+        // CONTRAMEDIDA ANTI-INVASOR (CIA STYLE)
+        (function() {
+            const devtools = { open: false };
+            const threshold = 160;
+            setInterval(() => {
+                if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
+                    document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%;'>⚠️ INTENTO DE INTRUSIÓN DETECTADO. <br> IP RASTREADA. <br> SESIÓN EXPULSADA.</h1>";
+                    setTimeout(() => window.location.href = "about:blank", 2000);
+                }
+            }, 1000);
+        })();
+
+        // MANEJO DE CHAT (BÁSICO)
+        const input = document.getElementById('command-line');
+        const terminal = document.getElementById('terminal');
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = input.value;
+                terminal.innerHTML += `<p><span style="color:white;">></span> ${val}</p>`;
+                input.value = '';
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
