@@ -15,208 +15,194 @@
             --terminal-font: 'Courier New', Courier, monospace;
         }
 
-        /* --- RESET Y ESTRUCTURA BASE --- */
         * { box-sizing: border-box; }
         body, html {
             background-color: var(--dark-bg);
             color: var(--neon-green);
             font-family: var(--terminal-font);
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            width: 100vw;
+            margin: 0; padding: 0;
+            height: 100vh; width: 100vw;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
         }
 
-        /* --- PANTALLA DE CARGA (MOBILE FRIENDLY) --- */
-        #splash-screen {
-            position: fixed;
-            inset: 0;
+        /* --- PANTALLA DE BLOQUEO (GATEKEEPER) --- */
+        #lock-screen {
+            position: fixed; inset: 0;
             background: black;
-            display: flex;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 2000;
+            text-align: center; padding: 20px;
+        }
+
+        .lock-box {
+            border: 1px solid var(--blood-red);
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+        }
+
+        .btn-auth {
+            background: transparent;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 15px 25px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 20px;
+            text-transform: uppercase;
+        }
+
+        /* --- PANTALLA DE CARGA (SPLASH) --- */
+        #splash-screen {
+            position: fixed; inset: 0;
+            background: black;
+            display: none; /* Se activa tras validar la llave */
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            justify-content: center; align-items: center;
             z-index: 1000;
             transition: opacity 1s ease;
         }
 
         #splash-image {
-            max-width: 70%;
-            max-height: 50%;
+            max-width: 70%; max-height: 50%;
             border: 2px solid var(--blood-red);
             box-shadow: 0 0 15px var(--blood-red);
             object-fit: contain;
         }
 
-        .loading-text {
-            margin-top: 25px;
-            font-size: 0.9rem;
-            letter-spacing: 3px;
-            text-align: center;
-            animation: blink 0.8s infinite;
-        }
-
         /* --- LAYOUT PRINCIPAL --- */
         #main-content {
             flex: 1;
-            display: flex;
+            display: none; /* Oculto hasta validación */
             flex-direction: column;
-            opacity: 0;
-            transition: opacity 1.5s ease;
             position: relative;
         }
 
-        /* Efecto de líneas de TV vieja */
         #scanlines {
-            position: absolute;
-            inset: 0;
+            position: absolute; inset: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
                         linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
             background-size: 100% 3px, 3px 100%;
-            pointer-events: none;
-            z-index: 5;
+            pointer-events: none; z-index: 5;
         }
 
-        /* Cabecera optimizada */
-        header {
-            padding: 10px;
-            border-bottom: 1px solid var(--blood-red);
-            background: rgba(0,0,0,0.8);
-        }
+        header { padding: 10px; border-bottom: 1px solid var(--blood-red); background: rgba(0,0,0,0.8); }
+        .cia-header { border: 1px solid #fff; color: #fff; font-size: 0.7rem; text-align: center; padding: 5px; margin-bottom: 5px; }
+        .phrase { font-size: 0.65rem; color: var(--blood-red); text-align: center; margin: 5px 0; text-transform: uppercase; }
 
-        .cia-header {
-            border: 1px solid #fff;
-            color: #fff;
-            font-size: 0.7rem;
-            text-align: center;
-            padding: 5px;
-            margin-bottom: 5px;
-        }
-
-        .phrase {
-            font-size: 0.65rem;
-            color: var(--blood-red);
-            text-align: center;
-            margin: 5px 0;
-            text-transform: uppercase;
-        }
-
-        /* --- ÁREA DE TERMINAL (SCROLL) --- */
-        .terminal {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            font-size: 13px;
-            scroll-behavior: smooth;
-        }
-
+        .terminal { flex: 1; overflow-y: auto; padding: 15px; font-size: 13px; scroll-behavior: smooth; }
         .msg-line { margin-bottom: 8px; border-left: 2px solid #222; padding-left: 8px; }
         .timestamp { color: #555; font-size: 0.7rem; margin-right: 5px; }
-        .user-tag { color: #fff; font-weight: bold; }
         
-        /* --- BARRA DE ENTRADA (MÓVIL ADAPTADO) --- */
-        .input-area {
-            background: #000;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            border-top: 1px solid #333;
-            gap: 10px;
-        }
+        .input-area { background: #000; padding: 12px; display: flex; align-items: center; border-top: 1px solid #333; gap: 10px; }
+        #command-line { flex: 1; background: transparent; border: none; color: var(--neon-green); outline: none; font-family: inherit; font-size: 16px; }
+        .clip-btn { color: var(--blood-red); font-size: 1.5rem; cursor: pointer; padding: 0 5px; }
 
-        .prompt { color: var(--neon-green); font-size: 0.8rem; white-space: nowrap; }
-
-        #command-line {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--neon-green);
-            outline: none;
-            font-family: inherit;
-            font-size: 16px; /* Evita zoom automático en iPhone */
-        }
-
-        .clip-btn {
-            color: var(--blood-red);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0 5px;
-        }
-
-        /* --- ANIMACIONES --- */
         @keyframes blink { 50% { opacity: 0; } }
-
-        /* Ajustes para PC */
         @media (min-width: 768px) {
             .cia-header { font-size: 1rem; padding: 10px; }
             .phrase { font-size: 0.85rem; }
             .terminal { font-size: 15px; padding: 30px; }
-            .prompt { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
 
+    <div id="lock-screen">
+        <div class="lock-box">
+            <h2 style="color:var(--blood-red); margin:0;">STRICT ACCESS</h2>
+            <p style="font-size: 0.8rem; color: #888;">IDENTIDAD REQUERIDA PARA INICIALIZAR TERMINAL</p>
+            
+            <input type="file" id="auth-input" style="display:none;" onchange="verificarAcceso(this)">
+            <button class="btn-auth" onclick="document.getElementById('auth-input').click()">SUBIR LLAVE .SKF</button>
+            
+            <p style="margin-top:20px; font-size:0.6rem; color:#444;">Si no posee una llave, use la terminal en modo invitado para generarla.</p>
+            <button onclick="modoInvitado()" style="background:none; border:none; color:#444; cursor:pointer; text-decoration:underline; font-size:0.6rem;">ENTRAR COMO INVITADO (SOLO REGISTRO)</button>
+        </div>
+    </div>
+
     <div id="splash-screen">
         <img src="1769312279088.jpg" id="splash-image" alt="SCARFACE">
-        <div class="loading-text">ESTABLECIENDO CONEXIÓN P2P...</div>
+        <div style="margin-top:20px; animation: blink 1s infinite;">ESTABLECIENDO CONEXIÓN P2P...</div>
     </div>
 
     <div id="main-content">
         <div id="scanlines"></div>
-        
         <header>
             <div class="cia-header">SISTEMA OPERATIVO SCARFACE V7.0 - ACCESO RESTRINGIDO</div>
             <div class="phrase">"Nuestra palabra es el acero que forja la libertad"</div>
         </header>
 
         <div class="terminal" id="terminal">
-            <p style="color:#888;">> Núcleo cargado. Red Gun.js vinculada.</p>
-            <p style="color:#888;">> Use <b>/register</b> para descargar su llave.</p>
+            <p style="color:yellow;">> SISTEMA DESBLOQUEADO.</p>
+            <p style="color:#888;">> Use <b>/register</b> si necesita una nueva llave.</p>
             <hr style="border:0; border-top:1px solid #222; margin:10px 0;">
         </div>
 
         <div class="input-area">
-            <span class="prompt">ID@LEGION:~$</span>
-            <input type="text" id="command-line" autocomplete="off" autofocus>
-            <label for="file-upload" class="clip-btn" title="Adjuntar Archivo">📎</label>
+            <span style="color:var(--neon-green);">ID@LEGION:~$</span>
+            <input type="text" id="command-line" autocomplete="off">
+            <label for="file-upload" class="clip-btn">📎</label>
             <input type="file" id="file-upload" style="display:none;" onchange="handleFile(this)">
         </div>
     </div>
 
     <script>
-        // --- CONFIGURACIÓN RED P2P ---
         const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
         const db = gun.get('legion-scarface-secure-v7');
-
         const terminal = document.getElementById('terminal');
         const input = document.getElementById('command-line');
 
-        // --- RECEPCIÓN DE MENSAJES ---
-        db.map().once((data, id) => {
-            if (data && data.msg) {
-                const time = new Date(data.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                const isImg = data.msg.includes('data:image');
-                
-                const div = document.createElement('div');
-                div.className = 'msg-line';
-                div.innerHTML = `<span class="timestamp">[${time}]</span> ` + 
-                                (isImg ? `<br>${data.msg}` : `<span class="user-tag">></span> ${data.msg}`);
-                
-                terminal.appendChild(div);
-                terminal.scrollTop = terminal.scrollHeight;
+        // --- SISTEMA DE ACCESO ---
+        function verificarAcceso(el) {
+            if (el.files[0].name.endsWith('.skf')) {
+                iniciarSistema();
+            } else {
+                alert("ARCHIVO NO VÁLIDO.");
             }
-        });
+        }
 
-        // --- ENVÍO DE MENSAJES ---
+        function modoInvitado() {
+            alert("MODO INVITADO: Solo podrá usar el comando /register. El chat está bloqueado.");
+            iniciarSistema(true);
+        }
+
+        function iniciarSistema(isGuest = false) {
+            document.getElementById('lock-screen').style.display = 'none';
+            const splash = document.getElementById('splash-screen');
+            splash.style.display = 'flex';
+            
+            setTimeout(() => {
+                splash.style.opacity = '0';
+                document.getElementById('main-content').style.display = 'flex';
+                setTimeout(() => {
+                    document.getElementById('main-content').style.opacity = '1';
+                    splash.style.display = 'none';
+                    if(!isGuest) activarRed();
+                }, 1000);
+            }, 2500);
+        }
+
+        // --- RED P2P ---
+        function activarRed() {
+            db.map().once((data) => {
+                if (data && data.msg) {
+                    const time = new Date(data.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const div = document.createElement('div');
+                    div.className = 'msg-line';
+                    div.innerHTML = `<span class="timestamp">[${time}]</span> ${data.msg}`;
+                    terminal.appendChild(div);
+                    terminal.scrollTop = terminal.scrollHeight;
+                }
+            });
+        }
+
+        // --- COMANDOS Y CHAT ---
         input.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter') {
                 const val = input.value.trim();
                 if (!val) return;
-
                 if (val.toLowerCase() === '/register') {
                     await generarLlave();
                 } else {
@@ -226,20 +212,6 @@
             }
         });
 
-        // --- PROCESAR ARCHIVOS ---
-        function handleFile(el) {
-            const file = el.files[0];
-            if (file.size > 1024 * 1024) return alert("Máximo 1MB para red P2P");
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const imgTag = `<img src="${e.target.result}" style="max-width:250px; border:1px solid red; margin:10px 0; display:block;">`;
-                db.set({ msg: imgTag, time: Date.now() });
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // --- GENERAR LLAVE RSA ---
         async function generarLlave() {
             const pair = await window.crypto.subtle.generateKey(
                 { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1,0,1]), hash: "SHA-256" },
@@ -250,22 +222,23 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url; a.download = "LEGION_ACCESS.skf"; a.click();
-            imprimirSistema("LLAVE GENERADA EXITOSAMENTE.");
+            imprimirSistema("LLAVE GENERADA.");
+        }
+
+        function handleFile(el) {
+            const file = el.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = `<img src="${e.target.result}" style="max-width:200px; border:1px solid red; display:block; margin:10px 0;">`;
+                db.set({ msg: img, time: Date.now() });
+            };
+            reader.readAsDataURL(file);
         }
 
         function imprimirSistema(t) {
             terminal.innerHTML += `<p style="color:yellow;">> SISTEMA: ${t}</p>`;
             terminal.scrollTop = terminal.scrollHeight;
         }
-
-        // --- CONTROL DE PANTALLA ---
-        window.onload = () => {
-            setTimeout(() => {
-                document.getElementById('splash-screen').style.opacity = '0';
-                document.getElementById('main-content').style.opacity = '1';
-                setTimeout(() => document.getElementById('splash-screen').style.display='none', 1000);
-            }, 3000);
-        };
     </script>
 </body>
 </html>
